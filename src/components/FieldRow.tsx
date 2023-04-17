@@ -1,6 +1,6 @@
 import React from "react";
 import { FieldTypes, Field } from "../types";
-import { MdAdd, MdDeleteOutline, MdOutlineSave } from "react-icons/md";
+import { MdAdd, MdDeleteOutline } from "react-icons/md";
 
 export default function FieldRow({
   field,
@@ -30,43 +30,13 @@ export default function FieldRow({
     }
   };
 
-  /*   const handleClickRequired = (
-    evt: React.ChangeEvent<HTMLInputElement>,
-    id: string
-  ) => {
-    evt.preventDefault();
-    const elemId = evt.currentTarget.id;
-    const value = evt.currentTarget.checked;
-    const input = document.getElementById(id);
-    // TODO: update state
-    // state[id].required = value;
-  };
- */
-  /*   const handleClickAdd = (id: string, idx: number) => {
-    // TODO: update state
-    const newField: Field = {
-      id: `${id}.${1}`,
-      type: "string",
-      name: "addName",
-      required: false,
-    };
-    // state[id].children.push(newField);
-    setSchema((prev) => {
-      const proxyPrev = prev;
-      // @ts-ignore
-      if (proxyPrev[idx] && proxyPrev[idx].children) proxyPrev[idx].children.push(newField);
-      else proxyPrev[idx].children = [newField];
-      return [...proxyPrev];
-    });
-  }; */
-
   const handleClickDelete = (id: string, idx: number) => {
     // TODO: update state
     // state[id].children.
   };
 
   return (
-    <div className="flex flex-row justify-between items-center my-2 ml-4 hover:bg-gray-600 border-b">
+    <div className="flex flex-row justify-between items-center my-2 ml-4 py-1 border-b text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700">
       <div className="flex flex-row">
         <div className="flex flex-col rounded-lg">
           <p
@@ -90,11 +60,12 @@ export default function FieldRow({
             name="type"
             id="type"
             defaultValue={field.type}
-            className="rounded-lg cursor-pointer"
             onChange={(evt) => {
               evt.preventDefault();
               onTypeChange(field.id, idx, evt.currentTarget.value);
             }}
+            title="Click to select"
+            className="rounded-lg cursor-pointer bg-gray-100 dark:bg-neutral-700 hover:bg-white dark:hover:bg-neutral-700"
           >
             {Object.values(FieldTypes).map((val) => (
               <option key={val} value={val}>
@@ -123,22 +94,24 @@ export default function FieldRow({
         {/* add button for object type field*/}
         {field.type === FieldTypes.OBJECT && (
           <button
-            className="hover:bg-gray-700 font-bold px-2 rounded-xl ml-2"
+            className="hover:bg-violet-500 p-2 dark:hover:bg-violet-500 font-extrabold rounded-xl ml-2"
             onClick={(evt) => {
               evt.preventDefault();
               onAddField(field.id, idx);
             }}
+            title="Click to add new field"
           >
             <MdAdd />
           </button>
         )}
         {/* delete button */}
         <button
-          className="hover:bg-gray-700 font-bold px-2 rounded-xl ml-2"
+          className="hover:bg-red-400 p-2 dark:hover:bg-red-500 font-bold rounded-xl ml-2"
           onClick={(evt) => {
             evt.preventDefault();
             handleClickDelete(field.id, idx);
           }}
+          title="Click to delete this field"
         >
           <MdDeleteOutline />
         </button>

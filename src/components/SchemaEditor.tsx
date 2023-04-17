@@ -105,11 +105,13 @@ export default function SchemaEditor({
   };
 
   return (
-    <div className="flex flex-col my-6 mx-4 py-4 px-6 border border-gray rounded-2xl min-w-18 shadow-xl">
+    <div className="flex flex-col my-6 mx-4 py-4 px-6 border border-gray rounded-2xl shadow-xl">
       <div className="flex flex-row justify-between my-2">
-        <h2 className="text-xl font-bold ml-6">Field Name and Type</h2>
+        <h2 className="text-xl font-bold ml-6 dark:text-white">
+          Field Name and Type
+        </h2>
         <button
-          className="bg-violet-500 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-xl"
+          className="bg-violet-500 hover:bg-violet-700 text-white dark:text-white font-bold py-2 px-4 rounded-xl"
           onClick={addAtomicField}
         >
           <MdAdd className="inline" /> Add Field
@@ -134,13 +136,13 @@ export default function SchemaEditor({
       {/* Reset and Save Buttons */}
       <div className="flex flex-row justify-between my-2">
         <button
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl my-4"
+          className="bg-red-500 hover:bg-red-700 text-white dark:text-white font-bold py-2 px-4 rounded-xl my-4"
           onClick={resetSchema}
         >
           <MdDeleteOutline className="inline" /> Reset
         </button>
         <button
-          className="bg-violet-500 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-xl my-4"
+          className="bg-violet-500 hover:bg-violet-700 text-white dark:text-white font-bold py-2 px-4 rounded-xl my-4"
           onClick={printSchema}
         >
           <MdOutlineSave className="inline" /> Save
