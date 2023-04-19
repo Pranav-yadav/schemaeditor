@@ -6,6 +6,7 @@ export default function FieldRow({
   field,
   idx,
   onAddField,
+  onDeleteField,
   onNameChange,
   onTypeChange,
   onRequiredChange,
@@ -28,11 +29,6 @@ export default function FieldRow({
     }, 250);
     return () => clearTimeout(timeoutId);
   }, [fieldName]);
-
-  const handleClickDelete = (id: string, idx: number) => {
-    // TODO: update state
-    // state[id].children.
-  };
 
   return (
     <div className="flex flex-row justify-between items-center my-2 ml-4 py-1 border-b text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700">
@@ -111,7 +107,7 @@ export default function FieldRow({
         <button
           className="hover:bg-red-400 p-2 dark:hover:bg-red-500 font-bold rounded-xl ml-2"
           onClick={(evt) => {
-            handleClickDelete(field.id, idx);
+            onDeleteField(field.id);
           }}
           title="Click to delete this field"
         >
@@ -126,6 +122,7 @@ export type FieldRowProps = {
   field: Field;
   idx: number;
   onAddField: (id: string) => void;
+  onDeleteField: (id: string) => void;
   onNameChange: (id: string, idx: number, name: string) => void;
   onTypeChange: (
     id: string,

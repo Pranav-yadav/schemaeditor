@@ -7,9 +7,6 @@ export default function SchemaEditor({
   schema,
   setSchema,
 }: SchemaEditorProps): JSX.Element {
-  // State Logic
-  // ...
-
   /**
    * Adds a new field at root level of schema
    */
@@ -24,7 +21,6 @@ export default function SchemaEditor({
    * Adds a new "nested" field as a child
    */
   const onAddField = (id: string) => {
-    console.log("Parent Field id: ", id);
     let newField: Field; // = getNewSubField(id);
     setSchema((prev) => {
       const proxyPrev = prev;
@@ -45,7 +41,6 @@ export default function SchemaEditor({
             proxyPrev[i].children = [newField];
           }
           found = true;
-          // return [...proxyPrev];
         }
       }
       if (found) return [...proxyPrev];
@@ -78,11 +73,50 @@ export default function SchemaEditor({
   };
 
   /**
+   * Deletes a field from the schema (root level or nested)
+   */
+  const onDeleteField = (id: string) => {
+    setSchema((prev) => {
+      const proxyPrev = prev;
+      let found = false;
+      // using bfs for root level fields and update name.
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (proxyPrev[i].id === id) {
+          proxyPrev.splice(i, 1);
+          found = true;
+        }
+      }
+      if (found) return [...proxyPrev];
+      // not found in root level, search in deeply nested fields using recursion.
+      const deleteField = (field: Field) => {
+        if (field.id === id) {
+          found = true;
+          return;
+        }
+        if (field.children && !found) {
+          for (let i = 0; i < field.children.length; i++) {
+            if (field.children[i].id === id) {
+              field.children.splice(i, 1);
+              found = true;
+              return;
+            }
+            deleteField(field.children[i]);
+          }
+        }
+      };
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (found) break;
+        deleteField(proxyPrev[i]);
+      }
+
+      return [...proxyPrev];
+    });
+  };
+
+  /**
    * Changes the name of a field
    */
   const onNameChange = (id: string, idx: number, name: string) => {
-    console.log("Name Change: ", name);
-    console.log("ID: ", id);
     setSchema((prev) => {
       const proxyPrev = prev;
       let found = false;
@@ -91,7 +125,6 @@ export default function SchemaEditor({
         if (proxyPrev[i].id === id) {
           proxyPrev[i].name = name;
           found = true;
-          // return [...proxyPrev];
         }
       }
       if (found) return [...proxyPrev];
@@ -113,7 +146,6 @@ export default function SchemaEditor({
         updateName(proxyPrev[i]);
       }
 
-      // if (proxyPrev[idx]) proxyPrev[idx].name = name;
       return [...proxyPrev];
     });
   };
@@ -127,8 +159,6 @@ export default function SchemaEditor({
     currentType: FieldTypes,
     type: FieldTypes
   ) => {
-    console.log("Type Change: ", type);
-    console.log("ID: ", id);
     setSchema((prev) => {
       const proxyPrev = prev;
       let found = false;
@@ -165,8 +195,7 @@ export default function SchemaEditor({
         if (found) break;
         updateType(proxyPrev[i]);
       }
-      // @ts-ignore
-      // if (proxyPrev[idx]) proxyPrev[idx].type = type;
+
       return [...proxyPrev];
     });
   };
@@ -175,8 +204,6 @@ export default function SchemaEditor({
    * Changes the required status of a field
    */
   const onRequiredChange = (id: string, idx: number, required: boolean) => {
-    console.log("Required Change: ", required);
-    console.log("ID: ", id);
     setSchema((prev) => {
       const proxyPrev = prev;
       let found = false;
@@ -205,12 +232,14 @@ export default function SchemaEditor({
         if (found) break;
         updateRequired(proxyPrev[i]);
       }
-      // @ts-ignore
-      // if (proxyPrev[idx]) proxyPrev[idx].required = required;
+
       return [...proxyPrev];
     });
   };
 
+  /**
+   * Returns a new subfield for a given field id
+   */
   const getNewSubField = (id: string, currentLen: number) => {
     const newField: Field = {
       id: `${id}.${currentLen + 1}`,
@@ -221,6 +250,9 @@ export default function SchemaEditor({
     return newField;
   };
 
+  /**
+   * Returns a new root level field
+   */
   const getNewField = (len: number) => {
     const newField: Field = {
       id: `${len + 1}`,
@@ -245,7 +277,8 @@ export default function SchemaEditor({
     console.groupEnd();
   };
 
-  // Recursively render given field's children if any
+  /** Recursively render given field's children if any
+   */
   const recursiveRender = (field: Field) => {
     if (field.children) {
       return (
@@ -259,6 +292,7 @@ export default function SchemaEditor({
                 field={child}
                 idx={idx}
                 onAddField={onAddField}
+                onDeleteField={onDeleteField}
                 onNameChange={onNameChange}
                 onTypeChange={onTypeChange}
                 onRequiredChange={onRequiredChange}
@@ -274,7 +308,7 @@ export default function SchemaEditor({
   };
 
   return (
-    <div className="flex flex-col my-6 mx-4 py-4 px-6 border border-gray rounded-2xl shadow-xl">
+    <div className="flex flex-col justify-between my-6 mx-4 py-4 px-6 border border-gray rounded-2xl shadow-xl min-w-full min-h-[35vh]">
       <div className="flex flex-row justify-between my-2">
         <h2 className="text-xl font-bold ml-6 dark:text-white">
           Field Name and Type
@@ -286,23 +320,35 @@ export default function SchemaEditor({
           <MdAdd className="inline" /> Add Field
         </button>
       </div>
-      <ol className="list-decimal">
-        {schema.map((field: Field, idx: number) => (
-          <li key={`field-${field.id}-${idx}`} className="ml-2 rounded px-2">
-            {/* Render First ever field */}
-            <FieldRow
-              field={field}
-              idx={idx}
-              onAddField={onAddField}
-              onNameChange={onNameChange}
-              onTypeChange={onTypeChange}
-              onRequiredChange={onRequiredChange}
-            />
-            {/* Recursively render it's children if any */}
-            {recursiveRender(field)}
-          </li>
-        ))}
-      </ol>
+      {schema.length === 0 ? (
+        <div className="flex flex-col justify-center align-center my-2">
+          <h3 className="text-lg font-bold ml-6 dark:text-white center">
+            No Fields Added Yet!
+          </h3>
+          <h6 className="text-m ml-2 p-2 mt-2 dark:text-white center border border-violet-600 rounded-xl shadow-xl bg-sky-500/60">
+            <b>TIP:</b> Click on <q>Add Field</q> button to add a field.
+          </h6>
+        </div>
+      ) : (
+        <ol className="list-decimal">
+          {schema.map((field: Field, idx: number) => (
+            <li key={`field-${field.id}-${idx}`} className="ml-2 rounded px-2">
+              {/* Render First ever field */}
+              <FieldRow
+                field={field}
+                idx={idx}
+                onAddField={onAddField}
+                onDeleteField={onDeleteField}
+                onNameChange={onNameChange}
+                onTypeChange={onTypeChange}
+                onRequiredChange={onRequiredChange}
+              />
+              {/* Recursively render it's children if any */}
+              {recursiveRender(field)}
+            </li>
+          ))}
+        </ol>
+      )}
       {/* Reset and Save Buttons */}
       <div className="flex flex-row justify-between my-2">
         <button
