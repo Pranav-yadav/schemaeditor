@@ -10,6 +10,9 @@ export default function SchemaEditor({
   // State Logic
   // ...
 
+  /**
+   * Adds a new field at root level of schema
+   */
   const addAtomicField = () => {
     setSchema((prev) => {
       const newField = getNewField(prev.length);
@@ -17,48 +20,210 @@ export default function SchemaEditor({
     });
   };
 
-  const onAddField = (id: string, idx: number) => {
-    const newField = getNewSubField(id, idx);
+  /**
+   * Adds a new "nested" field as a child
+   */
+  const onAddField = (id: string) => {
+    console.log("Parent Field id: ", id);
+    let newField: Field; // = getNewSubField(id);
     setSchema((prev) => {
       const proxyPrev = prev;
-      if (proxyPrev[idx] && proxyPrev[idx].children) {
-        // @ts-ignore
-        proxyPrev[idx].children.push(newField);
-      } else proxyPrev[idx].children = [newField];
+      let found = false;
+      // using bfs for root level fields and update name.
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (proxyPrev[i].id === id) {
+          if (proxyPrev[i].children) {
+            newField = getNewSubField(
+              proxyPrev[i].id,
+              // @ts-ignore save proxyPrev[i] to a variable and use that variable instead
+              proxyPrev[i].children.length
+            );
+            // @ts-ignore
+            proxyPrev[i].children.push(newField);
+          } else {
+            newField = getNewSubField(proxyPrev[i].id, 0);
+            proxyPrev[i].children = [newField];
+          }
+          found = true;
+          // return [...proxyPrev];
+        }
+      }
+      if (found) return [...proxyPrev];
+      // not found in root level, search in deeply nested fields using recursion.
+      const addChildField = (field: Field) => {
+        if (field.id === id) {
+          if (field.children) {
+            newField = getNewSubField(field.id, field.children.length);
+            field.children.push(newField);
+          } else {
+            newField = getNewSubField(field.id, 0);
+            field.children = [newField];
+          }
+          found = true;
+          return;
+        }
+        if (field.children && !found) {
+          for (let i = 0; i < field.children.length; i++) {
+            addChildField(field.children[i]);
+          }
+        }
+      };
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (found) break;
+        addChildField(proxyPrev[i]);
+      }
+
       return [...proxyPrev];
     });
   };
 
-  const onTypeChange = (id: string, idx: number, type: string) => {
+  /**
+   * Changes the name of a field
+   */
+  const onNameChange = (id: string, idx: number, name: string) => {
+    console.log("Name Change: ", name);
+    console.log("ID: ", id);
     setSchema((prev) => {
       const proxyPrev = prev;
+      let found = false;
+      // using bfs for root level fields and update name.
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (proxyPrev[i].id === id) {
+          proxyPrev[i].name = name;
+          found = true;
+          // return [...proxyPrev];
+        }
+      }
+      if (found) return [...proxyPrev];
+      // not found in root level, search in deeply nested fields using recursion.
+      const updateName = (field: Field) => {
+        if (field.id === id) {
+          field.name = name;
+          found = true;
+          return;
+        }
+        if (field.children && !found) {
+          for (let i = 0; i < field.children.length; i++) {
+            updateName(field.children[i]);
+          }
+        }
+      };
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (found) break;
+        updateName(proxyPrev[i]);
+      }
+
+      // if (proxyPrev[idx]) proxyPrev[idx].name = name;
+      return [...proxyPrev];
+    });
+  };
+
+  /**
+   * Changes the type of a field
+   */
+  const onTypeChange = (
+    id: string,
+    idx: number,
+    currentType: FieldTypes,
+    type: FieldTypes
+  ) => {
+    console.log("Type Change: ", type);
+    console.log("ID: ", id);
+    setSchema((prev) => {
+      const proxyPrev = prev;
+      let found = false;
+      // using bfs for root level fields and update type.
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (proxyPrev[i].id === id) {
+          proxyPrev[i].type = type;
+          found = true;
+          // if type is changed from object to non-object, remove children.
+          if (currentType === FieldTypes.OBJECT && type !== FieldTypes.OBJECT) {
+            delete proxyPrev[i].children;
+          }
+        }
+      }
+      if (found) return [...proxyPrev];
+      // not found in root level, search in deeply nested fields using recursion.
+      const updateType = (field: Field) => {
+        if (field.id === id) {
+          field.type = type;
+          found = true;
+          // if type is changed from object to non-object, remove children.
+          if (currentType === FieldTypes.OBJECT && type !== FieldTypes.OBJECT) {
+            delete field.children;
+          }
+          return;
+        }
+        if (field.children && !found) {
+          for (let i = 0; i < field.children.length; i++) {
+            updateType(field.children[i]);
+          }
+        }
+      };
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (found) break;
+        updateType(proxyPrev[i]);
+      }
       // @ts-ignore
-      if (proxyPrev[idx]) proxyPrev[idx].type = type;
+      // if (proxyPrev[idx]) proxyPrev[idx].type = type;
       return [...proxyPrev];
     });
   };
 
+  /**
+   * Changes the required status of a field
+   */
   const onRequiredChange = (id: string, idx: number, required: boolean) => {
+    console.log("Required Change: ", required);
+    console.log("ID: ", id);
     setSchema((prev) => {
       const proxyPrev = prev;
+      let found = false;
+      // using bfs for root level fields and update required.
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (proxyPrev[i].id === id) {
+          proxyPrev[i].required = required;
+          found = true;
+        }
+      }
+      if (found) return [...proxyPrev];
+      // not found in root level, search in deeply nested fields using recursion.
+      const updateRequired = (field: Field) => {
+        if (field.id === id) {
+          field.required = required;
+          found = true;
+          return;
+        }
+        if (field.children && !found) {
+          for (let i = 0; i < field.children.length; i++) {
+            updateRequired(field.children[i]);
+          }
+        }
+      };
+      for (let i = 0; i < proxyPrev.length; i++) {
+        if (found) break;
+        updateRequired(proxyPrev[i]);
+      }
       // @ts-ignore
-      if (proxyPrev[idx]) proxyPrev[idx].required = required;
+      // if (proxyPrev[idx]) proxyPrev[idx].required = required;
       return [...proxyPrev];
     });
   };
 
-  const getNewSubField = (id: string, idx: number) => {
-    return {
-      id: `${id}.${1}`,
+  const getNewSubField = (id: string, currentLen: number) => {
+    const newField: Field = {
+      id: `${id}.${currentLen + 1}`,
       type: FieldTypes.STRING,
       name: "addName",
       required: false,
-    } as Field;
+    };
+    return newField;
   };
 
   const getNewField = (len: number) => {
     const newField: Field = {
-      id: `${len}`,
+      id: `${len + 1}`,
       type: FieldTypes.STRING,
       name: "addName",
       required: false,
@@ -68,7 +233,7 @@ export default function SchemaEditor({
 
   const resetSchema = () => {
     setSchema([]);
-    console.log("Schema Reset completed!");
+    console.log("Schema Reset!");
   };
 
   const printSchema = () => {
@@ -80,17 +245,21 @@ export default function SchemaEditor({
     console.groupEnd();
   };
 
-  // Recursively render children if any
+  // Recursively render given field's children if any
   const recursiveRender = (field: Field) => {
     if (field.children) {
       return (
         <div className="rounded-xl">
           {field.children.map((child: Field, idx: number) => (
-            <div key={`nested-field-${child.id}`} className="ml-4 border-l">
+            <div
+              key={`nested-field-${child.id}-${idx}`}
+              className="ml-4 border-l"
+            >
               <FieldRow
                 field={child}
                 idx={idx}
                 onAddField={onAddField}
+                onNameChange={onNameChange}
                 onTypeChange={onTypeChange}
                 onRequiredChange={onRequiredChange}
               />
@@ -119,12 +288,13 @@ export default function SchemaEditor({
       </div>
       <ol className="list-decimal">
         {schema.map((field: Field, idx: number) => (
-          <li key={`field-${field.id}`} className="ml-2 rounded px-2">
+          <li key={`field-${field.id}-${idx}`} className="ml-2 rounded px-2">
             {/* Render First ever field */}
             <FieldRow
               field={field}
               idx={idx}
               onAddField={onAddField}
+              onNameChange={onNameChange}
               onTypeChange={onTypeChange}
               onRequiredChange={onRequiredChange}
             />
