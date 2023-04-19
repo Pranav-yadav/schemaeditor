@@ -8,7 +8,7 @@ export type Field = {
 
 export enum FieldTypes {
   STRING = "STRING",
-  NUMBER = "INTEGER",
+  NUMBER = "NUMBER",
   BOOLEAN = "BOOLEAN",
   OBJECT = "OBJECT",
 }
