@@ -11,7 +11,6 @@ export enum FieldTypes {
   NUMBER = "INTEGER",
   BOOLEAN = "BOOLEAN",
   OBJECT = "OBJECT",
-  ARRAY = "ARRAY",
 }
 
 export type Schema = Field[];
