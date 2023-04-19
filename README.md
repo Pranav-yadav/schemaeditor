@@ -6,7 +6,20 @@ Simple yet complex schema editor
 
 ## Schema Representation
 
-We can represent the schema as an _array of objects_, where each object represents a field with properties like `id`, `name`, `type`, and `children` (for nested fields in an object type).
+As per my initial understanding the schema can be represented as either of the following data structures along with the performance and implementation (add, delete, update ops complexity.
+
+| Data Structure | Performance | Implementation Complexity |
+| --- | --- | --- |
+| Arrays of objects | _Linear_ of root level and for deeply nested fields it's _Exponential_ | Easy |
+| Hashmap/Map | _Constant_ | Complex |
+| Tree | Requires another DS to store refs - _Linear_ | Moderate | 
+| Hybrid (Hashmap + Tree) | _Constant_ | Complex |
+
+Since this task can be optimized iteratively, I am going with the first approach. Once I have a working solution, I can optimize it by using a different data structure.
+
+---
+
+So for now, we can represent the schema as an _array of objects_, where each object represents a field with properties like `id`, `name`, `type`, and `children` (for nested fields in an object type).
 
 Example Schema:
 
